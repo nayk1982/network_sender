@@ -1,4 +1,5 @@
 #include "network_sender.h"
+#include <QtGlobal>
 #include <QMetaEnum>
 #include <QtNetwork/QHostAddress>
 #include <QFile>
@@ -17,8 +18,14 @@ NetworkSender::NetworkSender(QObject *parent) : QObject(parent)
             this, &NetworkSender::on_socketConnected);
     connect(&m_tcpSocket, &QTcpSocket::disconnected,
             this, &NetworkSender::on_socketDisconnected);
+#if QT_VERSION >= 0x050B00
     connect(&m_tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
             this, &NetworkSender::on_socketError );
+#else
+    connect(&m_tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::error),
+            this, &NetworkSender::on_socketError );
+#endif
+
     connect(&m_tcpSocket, &QTcpSocket::bytesWritten,
             this, &NetworkSender::on_bytesWritten);
     connect(&m_tcpSocket, &QTcpSocket::readyRead,
